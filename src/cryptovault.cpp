@@ -12,7 +12,6 @@
 
 int main(int argc, char *argv[])
 {
-  std::cout << "kappa";
 
 #ifdef DEBUG
   std::cin.get();
