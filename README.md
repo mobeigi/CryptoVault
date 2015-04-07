@@ -1,6 +1,6 @@
 CryptoVault File Locker
 ===========
-CryptoVault is a ransomware malware software created ONLY FOR EDUCATION PURPOSES.
+CryptoVault is a replica of ransomware malware software (such as CryptoLocker) created ONLY FOR EDUCATIONAL PURPOSES.
 Please read the disclaimer.
 
 Disclaimer
