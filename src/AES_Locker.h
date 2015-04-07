@@ -56,7 +56,7 @@ namespace CV
 
 }
 
-#endif
-
 //Implementation is stored in the template file;
 #include "AES_Locker.tem"
+
+#endif
