@@ -1,0 +1,91 @@
+/*
+* AES_Locker.tem
+* Allow encryption/decryption of arbitary size files
+*
+* Author: Mohammad Ghasembeigi
+* URL: http://mohammadg.com
+*/
+
+namespace CV
+{
+
+  template <unsigned int N>
+  int AESLocker<N>::set_encrypt_key() {
+    return AES_set_encrypt_key((const unsigned char *) this->ckey.c_str(), N, &this->key);
+  }
+
+  template <unsigned int N>
+  bool AESLocker<N>::encrypt_file(std::ifstream &ifs, std::ofstream &ofs) {
+    if (!ifs || !ofs) {
+      std::cerr << "Error: ifs or ofs could not be opened.";
+      return EXIT_FAILURE;
+    }
+
+    size_t bytes_read;
+    unsigned char indata[FILE_BLOCK_SIZE];
+    unsigned char outdata[FILE_BLOCK_SIZE];
+
+    //Set where in 128 block encryption will start
+    int num = 0;
+
+    //Make copy of ivec as AES_cfb128_encrypt will change the memory pointed to by ivec
+    std::string ivec_copy(this->ivec);
+
+    //Read in file
+    while (true) {
+      ifs.read((char *)indata, FILE_BLOCK_SIZE);
+      bytes_read = ifs.gcount();
+
+      AES_cfb128_encrypt(indata, outdata, bytes_read, &this->key, (unsigned char *)ivec_copy.c_str(), &num,
+        AES_ENCRYPT);
+
+      ofs.write((char *)outdata, bytes_read);
+
+      //Check if not all bytes could be read
+      if (bytes_read < FILE_BLOCK_SIZE) {
+        break;
+      }
+    }
+
+    return true;
+
+  }
+
+  template <unsigned int N>
+  bool AESLocker<N>::decrypt_file(std::ifstream &ifs, std::ofstream &ofs) {
+    if (!ifs || !ofs) {
+      std::cerr << "Error: ifs or ofs could not be opened.";
+      return EXIT_FAILURE;
+    }
+
+    size_t bytes_read;
+    unsigned char indata[FILE_BLOCK_SIZE];
+    unsigned char outdata[FILE_BLOCK_SIZE];
+
+    //Set where in 128 block encryption will start
+    int num = 0;
+
+    //Make copy of ivec as AES_cfb128_encrypt will change the memory pointed to by ivec
+    std::string ivec_copy(this->ivec);
+
+    //Read in file
+    while (true) {
+      ifs.read((char *)indata, FILE_BLOCK_SIZE);
+      bytes_read = ifs.gcount();
+
+      AES_cfb128_encrypt(indata, outdata, bytes_read, &this->key, (unsigned char *)ivec_copy.c_str(), &num,
+        AES_DECRYPT);
+
+      ofs.write((char *)outdata, bytes_read);
+
+      //Check if not all bytes could be read
+      if (bytes_read < FILE_BLOCK_SIZE) {
+        break;
+      }
+    }
+
+    return true;
+
+  }
+
+}
