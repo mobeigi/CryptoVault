@@ -47,8 +47,8 @@ namespace CV
     bool AESLocker::decrypt_file(std::ifstream &ifs, std::ofstream &ofs);
 
   private:
-    std::string ckey;
-    const std::string ivec;
+    std::string ckey; //cipher key or encryption key
+    const std::string ivec; // initialization vector
     size_t ENCRYPTION_KEY_LENGTH;
     static const size_t FILE_BLOCK_SIZE = 4096;
     AES_KEY key;
