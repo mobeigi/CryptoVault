@@ -17,14 +17,14 @@ int main(int argc, char *argv[])
   CV::AESLocker<256> AESLocker("thiskeyisverybadthiskeyisverybad", "dontusethisinput");
   AESLocker.set_encrypt_key();
 
-  std::ifstream ifs("test.txt", std::ifstream::binary);
-  std::ofstream ofs("test_out.txt", std::ifstream::binary);
+  std::ifstream ifs("test.wmv", std::ifstream::binary);
+  std::ofstream ofs("test_out.wmv", std::ifstream::binary);
   AESLocker.encrypt_file(ifs, ofs);
   ifs.close();
   ofs.close();
 
-  ifs = std::ifstream("test_out.txt", std::ifstream::binary);
-  ofs = std::ofstream("test_orig.txt", std::ifstream::binary);
+  ifs = std::ifstream("test_out.wmv", std::ifstream::binary);
+  ofs = std::ofstream("test_orig.wmv", std::ifstream::binary);
   AESLocker.decrypt_file(ifs, ofs);
   ifs.close();
   ofs.close();

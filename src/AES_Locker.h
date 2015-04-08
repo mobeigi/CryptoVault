@@ -50,7 +50,7 @@ namespace CV
     std::string ckey;
     const std::string ivec;
     size_t ENCRYPTION_KEY_LENGTH;
-    static const size_t FILE_BLOCK_SIZE = AES_BLOCK_SIZE;
+    static const size_t FILE_BLOCK_SIZE = 4096;
     AES_KEY key;
   };
 

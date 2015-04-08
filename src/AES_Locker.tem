@@ -18,7 +18,7 @@ namespace CV
   bool AESLocker<N>::encrypt_file(std::ifstream &ifs, std::ofstream &ofs) {
     if (!ifs || !ofs) {
       std::cerr << "Error: ifs or ofs could not be opened.";
-      return EXIT_FAILURE;
+      return false;
     }
 
     size_t bytes_read;
@@ -55,7 +55,7 @@ namespace CV
   bool AESLocker<N>::decrypt_file(std::ifstream &ifs, std::ofstream &ofs) {
     if (!ifs || !ofs) {
       std::cerr << "Error: ifs or ofs could not be opened.";
-      return EXIT_FAILURE;
+      return false;
     }
 
     size_t bytes_read;
