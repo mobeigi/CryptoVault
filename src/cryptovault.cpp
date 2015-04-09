@@ -12,6 +12,8 @@
 #include "Helper.h"
 #include <cassert>
 
+#include <osrng.h>
+
 #pragma warning(disable:4996)
 
 int main(int argc, char *argv[])
@@ -24,10 +26,21 @@ int main(int argc, char *argv[])
   std::string hashedHWID = CV::sha256_ascii(hwidm.hwid);
   assert(hashedHWID.size() == SHA256_DIGEST_LENGTH);
 
-  //Create 256bit AES locker with sha256 HWID hash as ckey
-  CV::AESLocker<256> AESLocker(hashedHWID, "thisisatestthisisatestthisisates");
+  //Generate unique (and random) ivec
+  //The ivec will be 256 bytes long (or 2048 bits)
+  std::string ivecStr;
+  ivecStr.reserve(256);
+  byte ivec[CryptoPP::AES::BLOCKSIZE * 16];
 
- 
+  CryptoPP::AutoSeededRandomPool prng;
+  prng.GenerateBlock(ivec, sizeof(ivec));
+  ivecStr.assign(ivec, ivec + sizeof(ivec));
+
+  std::cout << ivecStr.size();
+
+  //Create 256bit AES locker with sha256 HWID hash as ckey
+  CV::AESLocker<256> AESLocker(hashedHWID, ivecStr);
+
   std::ifstream ifs("test.wmv", std::ifstream::binary);
   std::ofstream ofs("test_out.wmv", std::ifstream::binary);
   AESLocker.encrypt_file(ifs, ofs);

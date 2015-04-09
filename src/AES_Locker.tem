@@ -14,7 +14,7 @@ namespace CV
   template<unsigned int N>
   AESLocker<N>::AESLocker(std::string key, std::string ivec) : AESLocker<N>::AESLocker() {
     assert(key.size() == N / 8); //check byte size of input string
-    assert(ivec.size() * 8 == CryptoPP::AES::BLOCKSIZE * 16); //Ensure ivex length is correct
+    assert(ivec.size() == CryptoPP::AES::BLOCKSIZE * 16); //Ensure ivex length is correct
     this->key.Assign((const byte *)key.c_str(), key.size());
     memcpy(this->ivec, ivec.c_str(), sizeof(ivec));
   }
