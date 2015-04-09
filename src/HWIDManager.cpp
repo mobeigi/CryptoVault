@@ -32,7 +32,7 @@ namespace CV
       UINT nDriveNumber = 0; //get primary drive
       this->getHWIDComponents();
     }
-    catch (CAtlException& e)
+    catch (CAtlException&)
     {
       std::cerr << "Error: Unable to initlize COM for WMI queries.";
       exit(1);

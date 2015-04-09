@@ -1,17 +1,22 @@
 /*
 * AES_Locker.tem
 * Allow encryption/decryption of arbitary size files
-*
+* Uses the Crypto++ Library
 * Author: Mohammad Ghasembeigi
 * URL: http://mohammadg.com
 */
 
+#include "openssl\evp.h"
+#include <assert.h>
+
 namespace CV
 {
-
-  template <unsigned int N>
-  int AESLocker<N>::set_encrypt_key() {
-    return AES_set_encrypt_key((const unsigned char *) this->ckey.c_str(), N, &this->key);
+  template<unsigned int N>
+  AESLocker<N>::AESLocker(std::string key, std::string ivec) : AESLocker<N>::AESLocker() {
+    assert(key.size() == N / 8); //check byte size of input string
+    assert(ivec.size() * 8 == CryptoPP::AES::BLOCKSIZE * 16); //Ensure ivex length is correct
+    this->key.Assign((const byte *)key.c_str(), key.size());
+    memcpy(this->ivec, ivec.c_str(), sizeof(ivec));
   }
 
   template <unsigned int N>
@@ -21,30 +26,19 @@ namespace CV
       return false;
     }
 
-    size_t bytes_read;
-    unsigned char indata[FILE_BLOCK_SIZE];
-    unsigned char outdata[FILE_BLOCK_SIZE];
+    try
+    {
+      CryptoPP::GCM<  CryptoPP::AES >::Encryption e;
+      e.SetKeyWithIV(this->key, this->key.size(), this->ivec, sizeof(this->ivec));
 
-    //Set where in 128 block encryption will start
-    int num = 0;
-
-    //Make copy of ivec as AES_cfb128_encrypt will change the memory pointed to by ivec
-    std::string ivec_copy(this->ivec);
-
-    //Read in file
-    while (true) {
-      ifs.read((char *)indata, FILE_BLOCK_SIZE);
-      bytes_read = ifs.gcount();
-
-      AES_cfb128_encrypt(indata, outdata, bytes_read, &this->key, (unsigned char *)ivec_copy.c_str(), &num,
-        AES_ENCRYPT);
-
-      ofs.write((char *)outdata, bytes_read);
-
-      //Check if not all bytes could be read
-      if (bytes_read < FILE_BLOCK_SIZE) {
-        break;
-      }
+      CryptoPP::FileSource(ifs, true, new  CryptoPP::AuthenticatedEncryptionFilter(e,
+        new  CryptoPP::FileSink(ofs), false, TAG_SIZE)
+      );
+    }
+    catch (CryptoPP::Exception&)
+    {
+      //ERROR
+      return false;
     }
 
     return true;
@@ -58,34 +52,41 @@ namespace CV
       return false;
     }
 
-    size_t bytes_read;
-    unsigned char indata[FILE_BLOCK_SIZE];
-    unsigned char outdata[FILE_BLOCK_SIZE];
+    try
+    {
+      CryptoPP::GCM<  CryptoPP::AES >::Decryption d;
+      d.SetKeyWithIV(this->key, this->key.size(), this->ivec, sizeof(this->ivec));
 
-    //Set where in 128 block encryption will start
-    int num = 0;
+      CryptoPP::AuthenticatedDecryptionFilter df(d,
+        new  CryptoPP::FileSink(ofs), //new StringSink(rpdata)
+        0, TAG_SIZE
+        ); // AuthenticatedDecryptionFilter
 
-    //Make copy of ivec as AES_cfb128_encrypt will change the memory pointed to by ivec
-    std::string ivec_copy(this->ivec);
 
-    //Read in file
-    while (true) {
-      ifs.read((char *)indata, FILE_BLOCK_SIZE);
-      bytes_read = ifs.gcount();
+      // The StringSource dtor will be called immediately
+      //  after construction below. This will cause the
+      //  destruction of objects it owns. To stop the
+      //  behavior so we can get the decoding result from
+      //  the DecryptionFilter, we must use a redirector
+      //  or manually Put(...) into the filter without
+      //  using a StringSource.
 
-      AES_cfb128_encrypt(indata, outdata, bytes_read, &this->key, (unsigned char *)ivec_copy.c_str(), &num,
-        AES_DECRYPT);
+      CryptoPP::FileSource(ifs, true,
+        new  CryptoPP::Redirector(df) //, PASS_EVERYTHING
+        );
 
-      ofs.write((char *)outdata, bytes_read);
-
-      //Check if not all bytes could be read
-      if (bytes_read < FILE_BLOCK_SIZE) {
-        break;
-      }
+      // If the object does not throw, here's the only
+      //  opportunity to check the data's integrity
+      this->INTEGRITY_OK = df.GetLastResult();
+    }
+    catch (CryptoPP::Exception&)
+    {
+      //ERROR
+      return false;
     }
 
     return true;
-
   }
+
 
 }

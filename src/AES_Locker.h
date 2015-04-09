@@ -1,7 +1,7 @@
 /*
 * AES_Locker.h
 * Allow encryption/decryption of arbitary size files
-*
+* Uses the Crypto++ Library
 * Author: Mohammad Ghasembeigi
 * URL: http://mohammadg.com
 */
@@ -12,46 +12,54 @@
 #include <string>
 #include <iostream>
 #include <fstream>
-#include <openssl/aes.h>
+#include "gcm.h"
+#include "aes.h"
+#include "files.h"
 
 //CV (cryptovault) namespace
 namespace CV
 {
   /*
-  * AES Locker class is used to encrypt and decrypt files using cfb128 standards.
+  * AES Locker class is used to encrypt and decrypt files
   */
   
-  template <unsigned int N = 128> 
+  template <unsigned int N = 128>
   class AESLocker {
   public:
-    //Contructor
-    AESLocker::AESLocker(std::string ckey, std::string ivec) : ckey(ckey), ivec(ivec), ENCRYPTION_KEY_LENGTH(N) {
+
+    //Default Constructor
+    AESLocker() : ENCRYPTION_KEY_LENGTH(N) {
       static_assert(N == 128 || N == 192 || N == 256, "N must be either 128, 192 or 256.");
     }
 
-    //Encryption
-
     /*
-    * Sets encryption key to correct encryption type
+    * Constructor used to initilise encryption key and initialization vector
     */
-    int AESLocker::set_encrypt_key();
+    AESLocker(std::string key, std::string ivec);
+
+    //Member Functions
 
     /*
-    * Given a input file stream, encrypts a file using AES cfb128 and outputs result via output file stream
+    * Given a input file stream, encrypts a file using AES GCM mode and outputs result via output file stream
     */
     bool AESLocker::encrypt_file(std::ifstream &ifs, std::ofstream &ofs);
 
     /*
-    * Given a input file stream, decrypts a file using AES cfb128 and outputs result via output file stream
+    * Given a input file stream, decrypts a file using AES GCM mode and outputs result via output file stream
     */
     bool AESLocker::decrypt_file(std::ifstream &ifs, std::ofstream &ofs);
 
+    /*
+    * Gets result of last decryption process
+    */
+    inline bool GetLastResult() { return this->INTEGRITY_OK; }
+
   private:
-    std::string ckey; //cipher key or encryption key
-    const std::string ivec; // initialization vector
+    byte ivec[CryptoPP::AES::BLOCKSIZE * 16]; // initialization vector
+    CryptoPP::SecByteBlock key; //encryption key
     size_t ENCRYPTION_KEY_LENGTH;
-    static const size_t FILE_BLOCK_SIZE = 4096;
-    AES_KEY key;
+    static const int TAG_SIZE = 12;
+    bool INTEGRITY_OK = false;
   };
 
 }

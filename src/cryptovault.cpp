@@ -12,8 +12,6 @@
 #include "Helper.h"
 #include <cassert>
 
-#define DEBUG
-
 #pragma warning(disable:4996)
 
 int main(int argc, char *argv[])
@@ -27,23 +25,26 @@ int main(int argc, char *argv[])
   assert(hashedHWID.size() == SHA256_DIGEST_LENGTH);
 
   //Create 256bit AES locker with sha256 HWID hash as ckey
-  CV::AESLocker<256> AESLocker(hashedHWID, "dontusethisinput");
-  AESLocker.set_encrypt_key();
+  CV::AESLocker<256> AESLocker(hashedHWID, "thisisatestthisisatestthisisates");
 
+ 
   std::ifstream ifs("test.wmv", std::ifstream::binary);
   std::ofstream ofs("test_out.wmv", std::ifstream::binary);
   AESLocker.encrypt_file(ifs, ofs);
   ifs.close();
   ofs.close();
-
-  ifs = std::ifstream("test_out.wmv", std::ifstream::binary);
-  ofs = std::ofstream("test_orig.wmv", std::ifstream::binary);
-  AESLocker.decrypt_file(ifs, ofs);
+ 
+  
+  std::ifstream ifs2 = std::ifstream("test_out.wmv", std::ifstream::binary);
+  std::ofstream ofs2 = std::ofstream("test_orig.wmv", std::ifstream::binary);
+  AESLocker.decrypt_file(ifs2, ofs2);
   ifs.close();
   ofs.close();
+
+  std::cout << AESLocker.GetLastResult() << std::endl;
   
 
-#ifdef DEBUG
+#ifdef _DEBUG
   std::cin.get();
   std::cin.ignore();
 #endif
