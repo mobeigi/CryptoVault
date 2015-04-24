@@ -13,7 +13,8 @@
 
 //CV (cryptovault) namespace
 namespace CV
-{  /*
+{  
+   /*
    * HWIDManager class stored HWID components as well as combined HWID for running machine
    */
   class HWIDManager {

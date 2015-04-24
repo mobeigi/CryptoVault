@@ -46,9 +46,19 @@ namespace CV
     bool AESLocker::encrypt_file(std::ifstream &ifs, std::ofstream &ofs);
 
     /*
+    * Given a byte array, encrypts contents and outputs result to output array
+    */
+    bool AESLocker::encrypt_bytearray(const byte *input, size_t inputSize, byte *output);
+
+    /*
     * Given a input file stream, decrypts a file using AES GCM mode and outputs result via output file stream
     */
     bool AESLocker::decrypt_file(std::ifstream &ifs, std::ofstream &ofs);
+
+    /*
+    * Given a byte array, decrypts contents and outputs result to output array
+    */
+    bool AESLocker::decrypt_bytearray(const byte *input, size_t inputSize, byte *output);
 
     /*
     * Gets result of last decryption process
@@ -59,7 +69,7 @@ namespace CV
     byte ivec[CryptoPP::AES::BLOCKSIZE * 16]; // initialization vector
     CryptoPP::SecByteBlock key; //encryption key
     size_t ENCRYPTION_KEY_LENGTH;
-    static const int TAG_SIZE = 12;
+    static const int TAG_SIZE = 16;
     bool INTEGRITY_OK = false;
   };
 

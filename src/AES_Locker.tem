@@ -14,7 +14,7 @@ namespace CV
   template<unsigned int N>
   AESLocker<N>::AESLocker(std::string key, std::string ivec) : AESLocker<N>::AESLocker() {
     assert(key.size() == N / 8); //check byte size of input string
-    assert(ivec.size() == CryptoPP::AES::BLOCKSIZE * 16); //Ensure ivex length is correct
+    assert(ivec.size() >= CryptoPP::AES::BLOCKSIZE); //Ensure ivex length is large enough
     this->key.Assign((const byte *)key.c_str(), key.size());
     memcpy(this->ivec, ivec.c_str(), sizeof(ivec));
   }
@@ -31,9 +31,9 @@ namespace CV
       CryptoPP::GCM<  CryptoPP::AES >::Encryption e;
       e.SetKeyWithIV(this->key, this->key.size(), this->ivec, sizeof(this->ivec));
 
-      CryptoPP::FileSource(ifs, true, new  CryptoPP::AuthenticatedEncryptionFilter(e,
-        new  CryptoPP::FileSink(ofs), false, TAG_SIZE)
-      );
+      CryptoPP::FileSource(ifs, true, new CryptoPP::AuthenticatedEncryptionFilter(e,
+        new  CryptoPP::FileSink(ofs), false, TAG_SIZE));
+
     }
     catch (CryptoPP::Exception&)
     {
@@ -42,7 +42,26 @@ namespace CV
     }
 
     return true;
+  }
 
+  template <unsigned int N>
+  bool AESLocker<N>::encrypt_bytearray(const byte *input, size_t inputSize, byte *output) {
+    try
+    {
+
+      CryptoPP::GCM<  CryptoPP::AES >::Encryption e;
+      e.SetKeyWithIV(this->key, this->key.size(), this->ivec, sizeof(this->ivec));
+
+      CryptoPP::ArraySource(input, inputSize, true, new CryptoPP::AuthenticatedEncryptionFilter(e,
+        new CryptoPP::ArraySink(output, inputSize + TAG_SIZE), false, TAG_SIZE));
+    }
+    catch (CryptoPP::Exception&)
+    {
+      //ERROR
+      return false;
+    }
+
+    return true;
   }
 
   template <unsigned int N>
@@ -72,7 +91,7 @@ namespace CV
       //  using a StringSource.
 
       CryptoPP::FileSource(ifs, true,
-        new  CryptoPP::Redirector(df) //, PASS_EVERYTHING
+        new  CryptoPP::Redirector(df) // PASS_EVERYTHING
         );
 
       // If the object does not throw, here's the only
@@ -88,5 +107,43 @@ namespace CV
     return true;
   }
 
+  template <unsigned int N>
+  bool AESLocker<N>::decrypt_bytearray(const byte *input, size_t inputSize, byte *output) {
+
+    try
+    {
+      CryptoPP::GCM<  CryptoPP::AES >::Decryption d;
+      d.SetKeyWithIV(this->key, this->key.size(), this->ivec, sizeof(this->ivec));
+
+      CryptoPP::AuthenticatedDecryptionFilter df(d,
+        new  CryptoPP::ArraySink(output, inputSize - TAG_SIZE), //new StringSink(rpdata)
+        0, TAG_SIZE
+        ); // AuthenticatedDecryptionFilter
+
+
+      // The StringSource dtor will be called immediately
+      //  after construction below. This will cause the
+      //  destruction of objects it owns. To stop the
+      //  behavior so we can get the decoding result from
+      //  the DecryptionFilter, we must use a redirector
+      //  or manually Put(...) into the filter without
+      //  using a StringSource.
+
+      CryptoPP::ArraySource(input, inputSize, true,
+        new CryptoPP::Redirector(df) // PASS_EVERYTHING
+        );
+
+      // If the object does not throw, here's the only
+      //  opportunity to check the data's integrity
+      this->INTEGRITY_OK = df.GetLastResult();
+    }
+    catch (CryptoPP::Exception&)
+    {
+      //ERROR
+      return false;
+    }
+
+    return true;
+  }
 
 }
