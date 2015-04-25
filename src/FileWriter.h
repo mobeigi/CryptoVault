@@ -5,15 +5,15 @@
 * Author: Mohammad Ghasembeigi
 * URL: http://mohammadg.com
 *
-* File Header Information:
-* CV1~ [14 bytes, identifies Cryptovault program and version number]
-* Header IV [16 bytes, unencrypted IV to decrypt file]
-* Data Key [32 bytes, encrypted]
-* Data IV [16 bytes, encrypted]
-* Data Tag [16 bytes]
-* Filesize [8 bytes, file size]
-* Encrypted Data [X bytes, encrypted file contents]
-* Encrypted Data Tag [16 bytes]
+* File Header Information (size and offsets):
+* 0x00 CRYPTOVAULT__~ string [14 bytes, identifies Cryptovault program and version number]
+* 0x0E Header IV [16 bytes, unencrypted IV to decrypt file]
+* 0x1E Data Key [32 bytes, encrypted]
+* 0x3E Data IV [16 bytes, encrypted]
+* 0x4E Data Tag [16 bytes]
+* 0x5E Filesize [8 bytes, little endian, file size of original file]
+* 0x66 Encrypted Data [X bytes, encrypted file contents]
+* 0x__ Encrypted Data Tag [16 bytes]
 *
 * Total Byte Size: 118 bytes + file size
 */
@@ -38,13 +38,13 @@ namespace CV
     /*
     * Function that will write the file header and encrypted file contents
     */
-    bool FileWriter::encryptFile(std::ifstream &ifs, std::ofstream &ofs, std::string masterKey);
+    bool FileWriter::encryptFile(std::string inputFile, std::string outputFile, std::string masterKey);
 
 
     /*
     * Function that will parse the cryptovault encrypted file and decrypt it
     */
-    bool FileWriter::decryptFile(std::ifstream &ifs, std::ofstream &ofs, std::string masterKey);
+    bool FileWriter::decryptFile(std::string inputFile, std::string outputFile, std::string masterKey);
 
   private:
     const std::string cryptovaultTag = "CRYPTOVAULT10~";

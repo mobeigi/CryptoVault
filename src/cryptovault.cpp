@@ -15,37 +15,24 @@
 
 #include <osrng.h>
 
-#define FILE_HEADER_TAG "CRYPTOVAULT~"
-
 #pragma warning(disable:4996)
 
 int main(int argc, char *argv[])
 {
-  //Make two inputs
-  std::ifstream ifs("test.wmv", std::ifstream::binary);
-  std::ofstream ofs("test_out.wmv", std::ifstream::binary);
 
   //Get master key (fixed)
   std::string masterKey = "55555555555555555555555555555555";
 
   //Make filewriter
   CV::FileWriter fw;
-  fw.encryptFile(ifs, ofs, masterKey);
+  fw.encryptFile("test.png", "test_out.png", masterKey);
   
-  ifs.close();
-  ofs.close();
 
   //**************************
 
-  std::ifstream ifs2 = std::ifstream("test_out.wmv", std::ifstream::binary);
-  std::ofstream ofs2 = std::ofstream("test_orig.wmv", std::ifstream::binary);
-
   //Make filewriter
   CV::FileWriter fw2;
-  fw2.decryptFile(ifs2, ofs2, masterKey);
-
-  ifs2.close();
-  ofs2.close();
+  fw2.decryptFile("test_out.png", "test_orig.png", masterKey);
 
   /*
   //Gather a HWID

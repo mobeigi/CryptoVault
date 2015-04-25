@@ -12,6 +12,7 @@
 #include "openssl\sha.h"
 #include <sstream>
 #include <iomanip>
+#include <fstream>
 
 namespace CV
 {
@@ -47,6 +48,15 @@ namespace CV
     }
 
     return ss.str();
+  }
+
+  /*
+  * Get file size
+  */
+  static std::ifstream::pos_type getFilesize(const char* filename)
+  {
+    std::ifstream in(filename, std::ifstream::ate | std::ifstream::binary);
+    return in.tellg();
   }
 }
 

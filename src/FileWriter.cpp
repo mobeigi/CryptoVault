@@ -8,13 +8,21 @@
 
 #include "FileWriter.h"
 #include "AES_Locker.h"
+#include "Helper.h"
 
 #include <cassert>
 #include <osrng.h>
 
 namespace CV
 {
-  bool FileWriter::encryptFile(std::ifstream &ifs, std::ofstream &ofs, std::string masterKey) {
+  bool FileWriter::encryptFile(std::string inputFile, std::string outputFile, std::string masterKey) {
+    //Get file size before opening file for encryption
+    uint64_t fileSize = CV::getFilesize(inputFile.c_str());
+
+    //Open file streams
+    std::ifstream ifs(inputFile, std::ifstream::binary);
+    std::ofstream ofs(outputFile, std::ifstream::binary);
+
     //Write cryptovault identifier tag [14 bytes]
     assert(cryptovaultTag.size() == 14);
     ofs << this->cryptovaultTag;
@@ -49,11 +57,12 @@ namespace CV
       ofs << encDataBlock[i];
 
     //Write Filesize [8 bytes]
-    //Dummy data for now
-    byte dummyFileSize[8] = { 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01 };
+    //Convert file size from 8 bit int to byte array
+    std::vector<byte> fileSizeVec(8);
+    for (int i = 0; i < 8; i++)
+      fileSizeVec[i] = (fileSize >> (i * 8));
 
-    for (size_t i = 0; i < 8; ++i)
-      ofs << encDataBlock[i];
+    ofs.write((char *)fileSizeVec.data(), 8);
 
     //Get data key and data ivec from datablock
     byte dataKey[32];
@@ -72,11 +81,17 @@ namespace CV
     //Write encrypted data + tag [X bytes + 16 bytes]
     DataLocker.encrypt_file(ifs, ofs);
 
+    ifs.close();
+    ofs.close();
+
     return true;
   }
 
 
-  bool FileWriter::decryptFile(std::ifstream &ifs, std::ofstream &ofs, std::string masterKey) {
+  bool FileWriter::decryptFile(std::string inputFile, std::string outputFile, std::string masterKey) {
+    //Open file streams
+    std::ifstream ifs(inputFile, std::ifstream::binary);
+    std::ofstream ofs(outputFile, std::ifstream::binary);
 
     //Check for cryptovault identifier tag
     char readCryptovaultTag[15];
@@ -101,8 +116,13 @@ namespace CV
     byte encryptedDataBlock[64];
     ifs.read((char *)encryptedDataBlock, 64);
 
-    //Read file size (ignore for now)
-    ifs.ignore(8);
+    //Read file size of original file
+    std::vector<byte> fileSizeVec(8);
+    ifs.read((char *)fileSizeVec.data(), 8);
+
+    //Get file size (little endian)
+    uint64_t fileSize = (fileSizeVec[7] << 56) | (fileSizeVec[6] << 48) | (fileSizeVec[5] << 40) | (fileSizeVec[4] << 32) |
+                        (fileSizeVec[3] << 24) | (fileSizeVec[2] << 16) | (fileSizeVec[1] << 8) | (fileSizeVec[0]);
 
     //Create AES locker for this file using master key + randomly generated IV for this file
     CV::AESLocker<256> AESLocker(masterKey, headerIVStr);
@@ -130,6 +150,10 @@ namespace CV
 
     //Decrypt encrypted data
     DataUnLocker.decrypt_file(ifs, ofs);
+
+    //Close file streams
+    ifs.close();
+    ofs.close();
 
     return DataUnLocker.GetLastResult();
   }
