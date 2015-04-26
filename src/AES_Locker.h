@@ -38,6 +38,13 @@ namespace CV
     */
     AESLocker(std::string key, std::string ivec);
 
+    /*
+    * Delegating constructor which takes authenticationTagSize
+    */
+    AESLocker(std::string key, std::string ivec, size_t authenticationTagSize) : AESLocker(key, ivec) {
+      this->TAG_SIZE = authenticationTagSize;
+    };
+
     //Member Functions
 
     /*
@@ -66,10 +73,10 @@ namespace CV
     inline bool GetLastResult() { return this->INTEGRITY_OK; }
 
   private:
-    byte ivec[CryptoPP::AES::BLOCKSIZE * 16]; // initialization vector
+    int TAG_SIZE = 12; //default 12
+    std::vector<byte> ivec;
     CryptoPP::SecByteBlock key; //encryption key
     size_t ENCRYPTION_KEY_LENGTH;
-    static const int TAG_SIZE = 16;
     bool INTEGRITY_OK = false;
   };
 

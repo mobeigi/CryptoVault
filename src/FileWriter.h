@@ -24,6 +24,14 @@
 #include <fstream>
 #include <string>
 
+#define IDENTIFIERTAGSIZE 14
+#define HEADERIVECSIZE 16
+#define DATAKEYSIZE 32
+#define DATAIVECSIZE HEADERIVECSIZE
+#define DATATAGSIZE 16
+#define ENCDATATAGSIZE DATATAGSIZE
+#define FILESIZENUMBYTES 8
+
 //CV (cryptovault) namespace
 namespace CV
 {

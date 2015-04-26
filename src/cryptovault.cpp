@@ -25,14 +25,15 @@ int main(int argc, char *argv[])
 
   //Make filewriter
   CV::FileWriter fw;
-  fw.encryptFile("test.png", "test_out.png", masterKey);
-  
+  bool res = fw.encryptFile("test.png", "test_out.png", masterKey);
+  std::cout << "Encryption Process:" << res << std::endl;
 
   //**************************
 
   //Make filewriter
   CV::FileWriter fw2;
-  fw2.decryptFile("test_out.png", "test_orig.png", masterKey);
+  res = fw2.decryptFile("test_out.png", "test_orig.png", masterKey);
+  std::cout << "Decryption Process:" << res << std::endl;
 
   /*
   //Gather a HWID
