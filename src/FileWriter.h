@@ -45,12 +45,14 @@ namespace CV
 
     /*
     * Function that will write the file header and encrypted file contents
+    * Will return false if any operation or assertion fails. 
     */
     bool FileWriter::encryptFile(std::string inputFile, std::string outputFile, std::string masterKey);
 
 
     /*
     * Function that will parse the cryptovault encrypted file and decrypt it
+    * Will return false if any operation or arrertion fails or if data integrity is not intact.
     */
     bool FileWriter::decryptFile(std::string inputFile, std::string outputFile, std::string masterKey);
 
